@@ -2,6 +2,6 @@ Performance Task IPT: A simple system that can perform simple CRUD functions usi
 
 Members:
 - Dizon, Clent
-- Ompag, Gerly
+- Ompad, Gerly
 - Entero, Zildzian
 - Caban, Andrea
