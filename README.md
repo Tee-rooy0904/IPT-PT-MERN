@@ -1,7 +1,9 @@
-Performance Task IPT: A simple system that can perform simple CRUD functions using MongoDB,Express,React,Node(MERN) Stack.
+Performance Task IPT Group 4: Basic System applying the MERN stack with CRUD Operations
 
 Members:
-- Dizon, Clent
-- Ompad, Gerly
-- Entero, Zildzian
-- Caban, Andrea
+- Denzel Troy Reformado
+- Jhoram Morales
+- Donjie Castino
+- Richard Budlat
+- Ivy Loque
+- Joarch Dave Galola
