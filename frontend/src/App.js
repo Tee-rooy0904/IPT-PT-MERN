@@ -1,19 +1,21 @@
 import React from 'react';
-import UserForm from './UserForm';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import ProductList from './ProductList';
+import AddProduct from './AddProduct';
+import EditProduct from './EditProduct';
 import './App.css';
-import logo from './image.png';
 
-const App = () => {
+function App() {
   return (
-    <div class="container-fluid">
-      <div class="imgBlock">
-        <img src={logo} />
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<ProductList />} />
+          <Route path="/add" element={<AddProduct />} />
+          <Route path="/edit/:id" element={<EditProduct />} />
+        </Routes>
       </div>
-
-      <h1 class="text-center txtH1">CCIS Students Data</h1>
-      <UserForm />
-    </div>
+    </Router>
   );
-};
-
+}
 export default App;

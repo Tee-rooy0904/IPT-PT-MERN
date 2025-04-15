@@ -1,112 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
-
-body{
-  font-family: "Poppins", sans-serif;
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.container{
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+.App {
+  text-align: center;
 }
 
-.actionBtn{
-  margin: 10px;
+.form-check-label {
+  color: white;
 }
 
-.editBtn{
-  border: none;
+/* Add some custom styling for better appearance */
+.card {
+  transition: all 0.3s ease;
 }
 
-.txtH1{
-  margin-top: 1em;
-  margin-bottom: 2em;
-}
-input,select{
-  margin-bottom: 2em;
+.btn {
+  transition: all 0.2s ease;
 }
 
-.gender{
-
-  display: flex;
-  
-}
-
-.gen{
-  margin-left: 1em;
-}
-
-.label1{
-  margin-right: 1em;
-}
-.btn-success{
-  margin-left: 1em;
-}
-.table{
-
-  font-size: 1rem;
-}
-
-.imgBlock{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
-
-body{
-  font-family: "Poppins", sans-serif;
-}
-
-.container{
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.actionBtn{
-  margin: 10px;
-}
-
-.editBtn{
-  border: none;
-}
-
-.txtH1{
-  margin-top: 1em;
-  margin-bottom: 2em;
-}
-input,select{
-  margin-bottom: 2em;
-}
-
-.gender{
-
-  display: flex;
-  
-}
-
-.gen{
-  margin-left: 1em;
-}
-
-.label1{
-  margin-right: 1em;
-}
-.btn-success{
-  margin-left: 1em;
-}
-.table{
-
-  font-size: 1rem;
-}
-
-.imgBlock{
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }

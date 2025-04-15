@@ -1,106 +1,144 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const app = express();
-const port = 5000;
+const port = 8888;
 
-
-mongoose.connect('mongodb+srv://clertiDev:y33d_2511@cluster0.eqllfms.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0');
-
-const db = mongoose.connection;
-
-db.on('error', (err) => {
-  console.error(err);
-});
-
-db.once('open', () => {
-  console.log('Connected to MongoDB');
-});
-
-
-const userSchema = new mongoose.Schema({
-  firstName: String,
-  middleName: String,
-  lastName: String,
-  age: String,
-  gender: String,
-  course: String,
-});
-
-const User = mongoose.model('User ', userSchema); 
-
-
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// MongoDB Connection
+const connectionString = 'mongodb+srv://eltruco1203:troylord1203@cluster0.h3sevdh.mongodb.net/ProductManagement?retryWrites=true&w=majority&appName=Cluster0';
 
+console.log('Using direct connection string');
 
-// Create a new user
-app.post('/users', (req, res) => {
-  const { firstName, middleName, lastName, age, gender, course } = req.body;
-  const user = new User({ firstName, middleName, lastName, age, gender, course });
-  user.save()
-    .then((savedUser ) => {
-      res.send({ message: 'User  created successfully' });
-    })
-    .catch((err) => {
-      res.status(500).send({ message: 'Error creating user' });
+// MongoDB Connection
+mongoose.connect(connectionString)
+  .then(() => console.log('MongoDB connected successfully to ProductManagement database'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+  });
+
+// Define Product Schema
+const productSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    price: { type: Number, required: true },
+    category: { type: String, required: true },
+    imageUrl: { type: String },
+    stockQuantity: { type: Number, required: true, default: 0 }
+});
+
+// Create model with explicit collection name 'Products'
+const Product = mongoose.model('Product', productSchema, 'Products');
+
+// Root route
+app.get('/', (req, res) => {
+    res.send('Server is running');
+});
+
+// Test endpoint to verify API functionality
+app.get('/test', (req, res) => {
+    console.log('Test endpoint hit');
+    res.json({ 
+      message: 'API is working!', 
+      mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      mongoDbName: mongoose.connection.name || 'No database connected'
     });
 });
 
-// Get all users
-app.get('/users', (req, res) => {
-  User.find().then((users) => {
-    res.send(users);
-  }).catch((err) => {
-    res.status(500).send({ message: 'Error fetching users' });
-  });
-});
-
-// Get a user by ID
-app.get('/users/:id', (req, res) => {
-  const id = req.params.id;
-  User.findById(id).then((user) => {
-    if (!user) {
-      res.status(404).send({ message: 'User  not found' });
-    } else {
-      res.send(user);
+// Get all products
+app.get('/api/products', async (req, res) => {
+    try {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(500).json({ message: 'Database connection error. Please check server logs.' });
+        }
+        
+        const products = await Product.find();
+        res.json(products);
+    } catch (err) {
+        console.error('Error fetching products:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
-  }).catch((err) => {
-    res.status(500).send({ message: 'Error fetching user' });
-  });
 });
 
-// Update a user
-app.put('/users/:id', (req, res) => {
-  const id = req.params.id;
-  const { firstName, middleName, lastName, age, gender, course} = req.body;
-  User.findByIdAndUpdate(id, { firstName, middleName, lastName, age, gender, course }, { new: true })
-    .then((user) => {
-      if (!user) {
-        return res.status(404).send({ message: 'User  not found' });
-      }
-      res.send(user);
-    })
-    .catch((err) => {
-      res.status(500).send({ message: 'Error updating user' });
-    });
-});
-
-// Delete a user
-app.delete('/users/:id', async (req, res) => {
-  const id = req.params.id;
-  try {
-    const deletedUser  = await User.findByIdAndDelete(id);
-    if (!deletedUser ) {
-      return res.status(404).send({ message: 'User  not found' });
+// Get a single product
+app.get('/api/products/:id', async (req, res) => {
+    try {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(500).json({ message: 'Database connection error. Please check server logs.' });
+        }
+        
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.json(product);
+    } catch (err) {
+        console.error('Error fetching product:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
-    res.send({ message: 'User  deleted successfully' });
-  } catch (err) {
-    res.status(500).send({ message: 'Error deleting user' });
-  }
 });
 
+// Add a new product
+app.post('/api/products', async (req, res) => {
+    try {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(500).json({ message: 'Database connection error. Please check server logs.' });
+        }
+        
+        const newProduct = new Product(req.body);
+        const savedProduct = await newProduct.save();
+        res.status(201).json(savedProduct);
+    } catch (err) {
+        console.error('Error adding product:', err);
+        res.status(400).json({ message: 'Error adding product', error: err.message });
+    }
+});
+
+// Update a product
+app.put('/api/products/:id', async (req, res) => {
+    try {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(500).json({ message: 'Database connection error. Please check server logs.' });
+        }
+        
+        const updatedProduct = await Product.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+        if (!updatedProduct) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.json(updatedProduct);
+    } catch (err) {
+        console.error('Error updating product:', err);
+        res.status(400).json({ message: 'Error updating product', error: err.message });
+    }
+});
+
+// Delete a product
+app.delete('/api/products/:id', async (req, res) => {
+    try {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(500).json({ message: 'Database connection error. Please check server logs.' });
+        }
+        
+        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+        if (!deletedProduct) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.json({ message: 'Product deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting product:', err);
+        res.status(400).json({ message: 'Error deleting product', error: err.message });
+    }
+});
+
+// Start server
 app.listen(port, () => {
-  console.log(`Server started on port ${port}`);
+    console.log(`Server running on port ${port}`);
 });
