@@ -2,115 +2,127 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const crypto = require('crypto');
 const app = express();
 const port = 8888;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000', // Your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // MongoDB Connection
-const connectionString = 'mongodb+srv://eltruco1203:troylord1203@cluster0.h3sevdh.mongodb.net/UserRegistration?retryWrites=true&w=majority&appName=Cluster0';
+const connectionString = 'mongodb+srv://eltruco1203:troylord1203@cluster0.h3sevdh.mongodb.net/ProductManagement?retryWrites=true&w=majority&appName=Cluster0';
 
 console.log('Using direct connection string');
+mongoose.set('strictQuery', true);
 
 // MongoDB Connection
 mongoose.connect(connectionString)
-  .then(() => console.log('MongoDB connected successfully to UserRegistration database'))
+  .then(() => console.log('MongoDB connected successfully to ProductManagement database'))
   .catch(err => {
     console.error('MongoDB connection error:', err);
   });
 
-// Password hashing function
-function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString('hex');
-  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-  return `${salt}:${hash}`;
-}
-
-// Password verification function
-function verifyPassword(storedPassword, suppliedPassword) {
-  const [salt, hash] = storedPassword.split(':');
-  const suppliedHash = crypto.pbkdf2Sync(suppliedPassword, salt, 1000, 64, 'sha512').toString('hex');
-  return hash === suppliedHash;
-}
-
-// Define User Schema
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
-});
-
+  const productSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    price: { type: Number, required: true },
+    category: { type: String, required: true },
+    imageUrl: { type: String },
+    stockQuantity: { type: Number, required: true, default: 0 }
+  });
 // Create model with explicit collection name 'Registration'
-const User = mongoose.model('User', userSchema, 'Registration');
+const Product = mongoose.model('Product', productSchema, 'Products');
 
-// Root route
-app.get('/', (req, res) => {
-    res.send('Server is running');
-});
-
-// Test endpoint to verify API functionality
-app.get('/test', (req, res) => {
-    console.log('Test endpoint hit');
-    res.json({ 
-      message: 'API is working!', 
-      mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-      mongoDbName: mongoose.connection.name || 'No database connected'
-    });
-});
-
-// Registration endpoint
-app.post('/api/users/register', async (req, res) => {
-  const { username, email, password, firstName, lastName } = req.body;
-
-  // Basic validation
-  if (!username || !email || !password || !firstName || !lastName) {
-    return res.status(400).json({ error: 'All fields are required' });
-  }
-
-  if (password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters' });
-  }
-
+app.get('/api/products', async (req, res) => {
   try {
-    // Check if user already exists
-    let user = await User.findOne({ $or: [{ email }, { username }] });
-    
-    if (user) {
-      if (user.email === email) {
-        return res.status(400).json({ error: 'Email already registered' });
-      } else {
-        return res.status(400).json({ error: 'Username already taken' });
+      if (mongoose.connection.readyState !== 1) {
+          return res.status(500).json({ message: 'Database connection error. Please check server logs.' });
       }
-    }
-
-    // Hash password
-    const hashedPassword = hashPassword(password);
-
-    // Create new user
-    user = new User({
-      username,
-      email,
-      password: hashedPassword,
-      firstName,
-      lastName
-    });
-
-    await user.save();
-    
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Server error' });
+      
+      const products = await Product.find();
+      res.json(products);
+  } catch (err) {
+      console.error('Error fetching products:', err);
+      res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
-// Start server
-app.listen(port, () => {
+app.get('/api/products/:id', async (req, res) => {
+  try {
+      if (mongoose.connection.readyState !== 1) {
+          return res.status(500).json({ message: 'Database connection error. Please check server logs.' });
+      }
+      
+      const product = await Product.findById(req.params.id);
+      if (!product) {
+          return res.status(404).json({ message: 'Product not found' });
+      }
+      res.json(product);
+  } catch (err) {
+      console.error('Error fetching product:', err);
+      res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+app.post('/api/products', async (req, res) => {
+  try {
+      if (mongoose.connection.readyState !== 1) {
+          return res.status(500).json({ message: 'Database connection error. Please check server logs.' });
+      }
+      
+      const newProduct = new Product(req.body);
+      const savedProduct = await newProduct.save();
+      res.status(201).json(savedProduct);
+  } catch (err) {
+      console.error('Error adding product:', err);
+      res.status(400).json({ message: 'Error adding product', error: err.message });
+  }
+});
+
+app.put('/api/products/:id', async (req, res) => {
+  try {
+      if (mongoose.connection.readyState !== 1) {
+          return res.status(500).json({ message: 'Database connection error. Please check server logs.' });
+      }
+      
+      const updatedProduct = await Product.findByIdAndUpdate(
+          req.params.id,
+          req.body,
+          { new: true }
+      );
+      if (!updatedProduct) {
+          return res.status(404).json({ message: 'Product not found' });
+      }
+      res.json(updatedProduct);
+  } catch (err) {
+      console.error('Error updating product:', err);
+      res.status(400).json({ message: 'Error updating product', error: err.message });
+    }
+  });
+
+  
+  app.delete('/api/products/:id', async (req, res) => {
+    try {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(500).json({ message: 'Database connection error. Please check server logs.' });
+        }
+        
+        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+        if (!deletedProduct) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.json({ message: 'Product deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting product:', err);
+        res.status(400).json({ message: 'Error deleting product', error: err.message });
+    }
+  });
+  app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+
+  

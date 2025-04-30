@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Register from './Register';
+import ProductList from './ProductList';
+import AddProduct from './AddProduct';
+import EditProduct from './EditProduct';
 import './App.css';
 
 function App() {
@@ -8,9 +10,9 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/" element={<Register />} />
-          <Route path="/register" element={<Register />} />
-          {/* You can add a login route later */}
+          <Route path="/" element={<ProductList />} />
+          <Route path="/add" element={<AddProduct />} />
+          <Route path="/edit/:id" element={<EditProduct />} />
         </Routes>
       </div>
     </Router>
